@@ -1,10 +1,15 @@
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 import datetime
 
 # Testing ke liye SQLite use kar rahe hain
-engine = create_engine("sqlite:///./crm.db", connect_args={"check_same_thread": False})
+engine = create_engine(
+    "sqlite:///./crm.db", 
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool # Ye connections ko efficiently manage karega
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

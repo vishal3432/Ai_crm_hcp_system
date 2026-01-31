@@ -14,7 +14,11 @@ tools = [log_interaction_tool, edit_interaction_tool, appointment_scheduler_tool
 tool_node = ToolNode(tools)
 
 # LLM setup (Llama 3.3 for 2026 performance)
-llm = ChatGroq(temperature=0, model_name="llama-3.3-70b-versatile").bind_tools(tools)
+llm = ChatGroq(
+    temperature=0, 
+    model_name="llama-3.1-8b-instant", 
+    groq_api_key=os.getenv("GROQ_API_KEY")
+).bind_tools(tools)
 
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], "Conversation history"]

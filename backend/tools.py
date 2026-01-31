@@ -4,13 +4,16 @@ import datetime
 
 @tool
 def log_interaction_tool(hcp_name: str, product: str, summary: str):
-    """Logs a new interaction with an HCP into the database. Use this when the user mentions a meeting or talk with a doctor."""
+    """Logs a new interaction. Closing DB connection after use."""
     db = SessionLocal()
-    new_entry = Interaction(hcp_name=hcp_name, product=product, summary=summary)
-    db.add(new_entry)
-    db.commit()
-    db.refresh(new_entry)
-    return f"Success! Interaction logged for {hcp_name} (ID: {new_entry.id})."
+    try:
+        new_entry = Interaction(hcp_name=hcp_name, product=product, summary=summary)
+        db.add(new_entry)
+        db.commit()
+        db.refresh(new_entry)
+        return f"Success! Interaction logged for {hcp_name} (ID: {new_entry.id})."
+    finally:
+        db.close() # Ye line parking spot khaali kar degi
 
 @tool
 def edit_interaction_tool(interaction_id: int, new_summary: str):
@@ -30,12 +33,15 @@ def appointment_scheduler_tool(hcp_name: str, date: str):
 
 @tool
 def hcp_insights_tool(hcp_name: str):
-    """Retrieves past interaction history for a doctor."""
+    """Retrieves history and closes connection."""
     db = SessionLocal()
-    history = db.query(Interaction).filter(Interaction.hcp_name.ilike(f"%{hcp_name}%")).all()
-    if history:
-        return [f"{h.created_at}: {h.summary}" for h in history]
-    return f"No previous records found for {hcp_name}."
+    try:
+        history = db.query(Interaction).filter(Interaction.hcp_name.ilike(f"%{hcp_name}%")).all()
+        if history:
+            return [f"{h.created_at}: {h.summary}" for h in history]
+        return f"No previous records found for {hcp_name}."
+    finally:
+        db.close()
 
 @tool
 def sample_inventory_tool(product_name: str):
