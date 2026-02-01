@@ -4,8 +4,10 @@ from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 from typing import TypedDict, Annotated, Sequence
-from langchain_core.messages import BaseMessage, HumanMessage
+# SystemMessage import karna zaroori hai
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage 
 from tools import log_interaction_tool, edit_interaction_tool, appointment_scheduler_tool, hcp_insights_tool, sample_inventory_tool
+from datetime import datetime
 
 load_dotenv()
 
@@ -13,7 +15,7 @@ load_dotenv()
 tools = [log_interaction_tool, edit_interaction_tool, appointment_scheduler_tool, hcp_insights_tool, sample_inventory_tool]
 tool_node = ToolNode(tools)
 
-# LLM setup (Llama 3.3 for 2026 performance)
+# LLM setup
 llm = ChatGroq(
     temperature=0, 
     model_name="llama-3.1-8b-instant", 
@@ -23,9 +25,33 @@ llm = ChatGroq(
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], "Conversation history"]
 
+# --- YAHAN SE CHANGES HAIN ---
+
 def call_model(state: AgentState):
-    response = llm.invoke(state['messages'])
+    # 1. Aaj ki sahi date nikalna
+    today = datetime.now()
+    current_date = today.strftime("%A, %B %d, %Y") # Example: Sunday, February 01, 2026
+    
+    # 2. AI ko context dena (Grounding)
+    system_prompt = SystemMessage(content=f"""
+    You are an AI CRM Agent for Healthcare Professionals (HCPs).
+    Your primary goal is to help sales reps log visits, schedule appointments, and manage inventory.
+    
+    IMPORTANT CONTEXT:
+    - Today's date is {current_date}.
+    - When the user mentions relative dates like 'tomorrow', 'next week', or 'next Thursday', 
+      calculate the exact YYYY-MM-DD date based on {current_date}.
+    - If a tool call fails, double-check your date calculations.
+    """)
+    
+    # 3. System prompt ko messages ke shuruat mein joḍna
+    messages_with_context = [system_prompt] + list(state['messages'])
+    
+    # 4. LLM call
+    response = llm.invoke(messages_with_context)
     return {"messages": [response]}
+
+# --- CHANGES KHATAM ---
 
 def should_continue(state: AgentState):
     last_msg = state['messages'][-1]
