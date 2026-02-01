@@ -39,7 +39,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Backend URL - Replace this with your Render URL when going live
-  const API_BASE_URL = "http://127.0.0.1:8000"; 
+  const API_BASE_URL = "https://ai-crm-hcp-system.onrender.com"; 
 
   const fetchLogs = async () => {
     try {
