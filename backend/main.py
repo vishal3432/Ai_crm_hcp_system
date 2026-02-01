@@ -53,10 +53,12 @@ async def chat_with_agent(request: ChatRequest):
 
 @app.get("/interactions", response_model=List[InteractionResponse])
 def get_all_interactions():
-    """Database se saari interactions fetch karta hai."""
     db = SessionLocal()
-    interactions = db.query(Interaction).order_by(Interaction.id.desc()).all()
-    return interactions
+    try:
+        interactions = db.query(Interaction).order_by(Interaction.id.desc()).all()
+        return interactions
+    finally:
+        db.close()
 
 # main.py mein endpoints ke pass add karo
 class LoginRequest(BaseModel):
