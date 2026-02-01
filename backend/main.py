@@ -9,9 +9,11 @@ from database import SessionLocal, Interaction
 app = FastAPI(title="AI CRM HCP API")
 
 # 1. CORS Setup (Taaki React app isse baat kar sake)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Development ke liye sab allowed hai
+    allow_origins=["*"],  # Production mein yahan apna Vercel link daal sakte ho
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
